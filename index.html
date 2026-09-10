@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#6759f2">
+<title>CalTrack</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb;--accent:#6759f2;--soft:#f0efff}
+*{box-sizing:border-box}html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,select{font:inherit}button{border:0;cursor:pointer}
+.app{width:100%;max-width:520px;margin:0 auto;min-height:100vh;padding-bottom:92px}
+.top{padding:26px 20px 8px;display:flex;justify-content:space-between;align-items:center}.eyebrow{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.08em}.title{font-size:30px;font-weight:800}
+.screen{display:none;padding:10px 16px}.screen.active{display:block}
+.hero{background:linear-gradient(135deg,#7567ff,#5a4ee9);color:#fff;border-radius:26px;padding:20px;box-shadow:0 12px 28px #6d5dfc35}
+.heroTop{display:flex;justify-content:space-between}.ring{width:170px;height:170px;border-radius:50%;margin:14px auto 8px;position:relative;overflow:hidden;display:grid;place-items:center;background:conic-gradient(#fff 0 var(--pct,0%),#ffffff35 var(--pct,0%) 100%)}
+.ring:after{content:"";position:absolute;width:132px;height:132px;left:19px;top:19px;border-radius:50%;background:#6759f2}
+.ringText{position:relative;z-index:2;text-align:center}.ringText b{display:block;font-size:32px}.ringText span{font-size:12px;opacity:.85}
+.macros{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:18px}.macro{background:#ffffff18;border-radius:16px;padding:11px;text-align:center}.macro b{display:block;font-size:17px}.macro span{font-size:11px;opacity:.85}
+.card{background:var(--card);border-radius:22px;padding:18px;margin-top:14px;box-shadow:0 3px 18px #00000009}.row{display:flex;justify-content:space-between;align-items:center;gap:10px}.sectionTitle{font-size:18px;font-weight:800}.muted{color:var(--muted);font-size:13px}
+.meal{padding:13px 0;border-bottom:1px solid var(--line)}.meal:last-child{border-bottom:0}.pill{background:var(--soft);color:#5b4df0;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:700}
+.btn{background:var(--accent);color:#fff;border-radius:14px;padding:12px 15px;font-weight:700}.btn.secondary{background:#f0efff;color:#5548dc}.btn.full{width:100%;margin-top:9px}.btn.mini{padding:8px 11px;border-radius:11px}
+.search{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--text);outline:none}.search:focus{border-color:var(--accent)}
+.field{display:flex;flex-direction:column;gap:6px}.field label{font-size:12px;color:var(--muted);font-weight:700}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.food{display:flex;align-items:center;gap:11px;padding:12px 0;border-bottom:1px solid var(--line)}.foodIcon{width:42px;height:42px;border-radius:13px;background:var(--soft);display:grid;place-items:center;font-size:21px}.foodMain{flex:1;min-width:0}.foodMain b{display:block}.foodMain span{display:block;color:var(--muted);font-size:12px;margin-top:3px}.empty{padding:20px;text-align:center;color:var(--muted);font-size:13px}.backRow{margin-bottom:8px}.backBtn{background:transparent;color:var(--accent);font-weight:700;padding:8px 0}
+.nav{position:fixed;z-index:20;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:#fffffff2;border-top:1px solid var(--line);backdrop-filter:blur(14px);display:grid;grid-template-columns:repeat(6,1fr);padding:8px 5px calc(8px + env(safe-area-inset-bottom))}
+.nav button{background:transparent;color:var(--muted);font-size:10px;padding:5px 1px;border-radius:12px}.nav button.active{color:var(--accent);font-weight:800}.ico{display:block;font-size:20px;line-height:21px}
+.toast{position:fixed;z-index:50;left:50%;bottom:100px;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 14px;border-radius:12px;display:none;font-size:13px}
+.aiQuickActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}.aiBubble{background:var(--soft);padding:12px 14px;border-radius:16px;margin-top:10px;font-size:13px;line-height:1.45}.userBubble{background:#e8e6ff;color:#3f36a8}.aiChat{max-height:360px;overflow:auto;margin-top:10px}.aiInputRow{display:grid;grid-template-columns:1fr auto auto;gap:7px;margin-top:12px}.aiInputRow input{min-width:0}
+.dark{--bg:#111318;--card:#1b1e25;--text:#f8fafc;--muted:#aeb5c0;--line:#2b303a;--soft:#28244a}.dark .nav{background:#171a20f2}
+@media(max-width:390px){.aiQuickActions{grid-template-columns:1fr}.title{font-size:27px}}
+
+.barcodeScanner{margin-top:12px;position:relative}
+.barcodeScanner video{width:100%;max-height:320px;border-radius:16px;background:#111;object-fit:cover}
+.barcodeHint{position:absolute;left:12px;right:12px;top:12px;padding:8px 10px;border-radius:10px;background:rgba(0,0,0,.65);color:#fff;text-align:center;font-size:13px}
+.barcodeScanner .btn{margin-top:10px;width:100%}
+.barcode-card .muted{margin:6px 0 10px}
+
+
+.modalOverlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:18px;z-index:9999}
+.modalOverlay.hidden,.hidden{display:none!important}
+.modalCard{width:min(520px,100%);max-height:90vh;overflow:auto;background:var(--card,#fff);color:inherit;border-radius:20px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modalCard label{display:block;margin:10px 0;font-weight:600}
+.modalCard input,.modalCard select{width:100%;box-sizing:border-box;margin-top:5px}
+.modalActions{display:flex;gap:10px;margin-top:16px}
+.modalActions .btn{flex:1}
+
+.addBarcodeBtn{width:100%;margin:0 0 14px;font-size:16px;padding:14px}
+.barcodeManual{display:flex;gap:8px;margin-top:10px}.barcodeManual input{flex:1;min-width:0}.barcodeManual .btn{white-space:nowrap}
+</style>
+<script src="https://unpkg.com/@zxing/browser@0.1.5/umd/index.min.js"></script>
+</head>
+<body>
+<div class="app">
+<header class="top"><div><div class="eyebrow">CALTRACK</div><div class="title" id="pageTitle">Today</div></div></header>
+
+<section id="today" class="screen active">
+<div class="hero">
+<div class="heroTop"><div><b>Calories</b><div style="font-size:12px;opacity:.8">Daily progress</div></div><span class="pill" id="goalPill">2200 kcal</span></div>
+<div class="ring" id="calRing"><div class="ringText"><b id="calories">0</b><span>of <span id="target">2200</span> kcal</span></div></div>
+<div class="macros"><div class="macro"><b id="pval">0g</b><span>Protein</span></div><div class="macro"><b id="cval">0g</b><span>Carbs</span></div><div class="macro"><b id="fval">0g</b><span>Fat</span></div></div>
+</div>
+<div class="card"><div class="row"><span class="sectionTitle">Meals</span><button class="btn secondary" onclick="show('add')">+ Add</button></div>
+<div class="row" style="margin-top:15px"><b>Morning</b><span class="pill" id="morningNeed">0 kcal</span></div><div id="morningList"></div>
+<div class="row" style="margin-top:15px"><b>Lunch</b><span class="pill" id="lunchNeed">0 kcal</span></div><div id="lunchList"></div>
+<div class="row" style="margin-top:15px"><b>Dinner</b><span class="pill" id="dinnerNeed">0 kcal</span></div><div id="dinnerList"></div>
+<div class="row" style="margin-top:15px"><b>Snacks</b><span class="pill" id="snackNeed">0 kcal</span></div><div id="snackList"></div>
+<div id="mealEmpty" class="empty">No food logged yet. Tap + Add to get started.</div>
+</div></section>
+
+<section id="food" class="screen">
+<div class="backRow"><button class="backBtn" onclick="show('add')">← Back</button></div>
+<div class="card"><div class="sectionTitle">Food Search</div><input id="search" class="search" style="margin-top:10px" placeholder="Search food or brand…"><div id="foods"></div></div>
+</section>
+
+<section id="add" class="screen">
+      <button type="button" class="btn primary addBarcodeBtn" id="addBarcodeBtn" onclick="startBarcodeScanner()">📷 Scan Barcode</button>
+
+<div class="backRow"><button class="backBtn" onclick="show('today')">← Back</button></div>
+<div class="card"><div class="sectionTitle">Add to meal</div><select id="mealType" class="search" style="margin-top:10px"><option value="morning">Morning</option><option value="lunch">Lunch</option><option value="dinner">Dinner</option><option value="snack">Snack</option></select></div>
+<div class="card"><div class="sectionTitle">Add food</div><button class="btn full" onclick="show('food')">🔎 Search foods</button><button class="btn secondary full" onclick="quickAdd()">✚ Quick add calories</button><div id="quickAddCard" style="display:none;margin-top:12px"><div class="grid2"><div class="field"><label>Calories</label><input id="qaCal" class="search" type="number"></div><div class="field"><label>Protein (g)</label><input id="qaPro" class="search" type="number"></div><div class="field"><label>Carbs (g)</label><input id="qaCarb" class="search" type="number"></div><div class="field"><label>Fat (g)</label><input id="qaFat" class="search" type="number"></div></div><button class="btn full" onclick="saveQuickAdd()">Add to Today</button></div></div>
+
+</section>
+
+<section id="progress" class="screen">
+<div class="card"><div class="sectionTitle">Weight</div><div class="muted" style="margin-top:5px">Save your weight to track progress.</div><div class="grid2"><div class="field"><label>Today's weight</label><input id="weightInput" class="search" type="number" step=".1"></div><div class="field"><label>Unit</label><select id="weightUnit" class="search"><option>lb</option><option>kg</option></select></div></div><button class="btn full" onclick="saveWeight()">Save today's weight</button></div>
+<div class="card"><div class="row"><div><div class="sectionTitle">Recent weights</div><div class="muted">Last 7 saved entries</div></div></div><div id="weightList"></div></div>
+</section>
+
+<section id="ai" class="screen">
+<div class="card"><div class="row"><div><div class="sectionTitle">🤖 CalTrack Coach</div><div class="muted">Your nutrition assistant</div></div></div>
+<div class="aiQuickActions"><button type="button" class="btn secondary aiPrompt" data-q="Review my meals" onclick="aiAsk(this.dataset.q)">🍽️ Review my meals</button><button type="button" class="btn secondary aiPrompt" data-q="How is my protein?" onclick="aiAsk(this.dataset.q)">💪 How is my protein?</button><button type="button" class="btn secondary aiPrompt" data-q="Check my calories" onclick="aiAsk(this.dataset.q)">🔥 Check my calories</button><button type="button" class="btn secondary aiPrompt" data-q="What should I eat next?" onclick="aiAsk(this.dataset.q)">🥗 What should I eat next?</button></div>
+<div id="aiChat" class="aiChat"></div><div class="aiInputRow"><input id="aiInput" class="search" placeholder="Ask about your meals…"><button id="aiSend" class="btn">Send</button><button id="aiSpeak" class="btn secondary">🔊</button></div></div>
+</section>
+
+<section id="settings" class="screen">
+<div class="card"><div class="sectionTitle">Goals</div><div class="grid2"><div class="field"><label>Calories</label><input id="sCal" class="search" type="number"></div><div class="field"><label>Protein (g)</label><input id="sPro" class="search" type="number"></div><div class="field"><label>Carbs (g)</label><input id="sCarb" class="search" type="number"></div><div class="field"><label>Fat (g)</label><input id="sFat" class="search" type="number"></div></div><button class="btn full" onclick="saveSettings()">Save goals</button></div>
+<div class="card"><div class="row"><div><b>Dark mode</b><div class="muted">Use a darker appearance</div></div><button id="darkBtn" class="btn secondary" onclick="toggleDark()">Toggle</button></div></div>
+<div class="card"><button class="btn secondary full" onclick="resetData()">Reset today's log</button></div>
+</section>
+</div>
+
+<nav class="nav">
+<button data-s="today" class="active" onclick="show('today')"><span class="ico">⌂</span>Today</button>
+<button data-s="food" onclick="show('food')"><span class="ico">⌕</span>Food</button>
+<button data-s="add" onclick="show('add')"><span class="ico">＋</span>Add</button>
+<button data-s="progress" onclick="show('progress')"><span class="ico">▥</span>Progress</button>
+<button data-s="ai" onclick="show('ai')"><span class="ico">🤖</span>AI</button>
+<button data-s="settings" onclick="show('settings')"><span class="ico">⚙</span>Settings</button>
+</nav>
+<div id="toast" class="toast"></div>
+
+<script>
+const foods=[
+{name:'Chicken breast',brand:'Generic',cal:165,p:31,c:0,f:3.6},{name:'White rice',brand:'Generic',cal:205,p:4.3,c:45,f:.4},
+{name:'Banana',brand:'Generic',cal:105,p:1.3,c:27,f:.4},{name:'Oatmeal',brand:'Generic',cal:150,p:5,c:27,f:3},
+{name:'Turkey sandwich',brand:'Generic',cal:350,p:25,c:40,f:10},{name:'Greek yogurt',brand:'Generic',cal:100,p:10,c:6,f:0},
+{name:'Great Value White Bread',brand:'Walmart',cal:140,p:5,c:26,f:2},{name:'Great Value Peanut Butter',brand:'Walmart',cal:190,p:7,c:8,f:16},
+{name:'Great Value White Rice',brand:'Walmart',cal:205,p:4,c:45,f:.4},{name:'Great Value Macaroni & Cheese',brand:'Walmart',cal:250,p:9,c:36,f:8},
+{name:'Great Value Instant Mashed Potatoes',brand:'Walmart',cal:110,p:2,c:20,f:2},{name:'Great Value Old Fashioned Oats',brand:'Walmart',cal:150,p:5,c:27,f:3},
+{name:"McDonald's Big Mac",brand:"McDonald's",cal:580,p:25,c:46,f:34},{name:"McDonald's McChicken",brand:"McDonald's",cal:400,p:14,c:39,f:21},
+{name:'Taco Bell Crunchy Taco',brand:'Taco Bell',cal:170,p:8,c:13,f:10},{name:'Chick-fil-A Chicken Sandwich',brand:'Chick-fil-A',cal:420,p:29,c:41,f:17},
+{name:"Wendy's Dave's Single",brand:"Wendy's",cal:590,p:29,c:36,f:37},{name:'Subway All-American Club',brand:'Subway',cal:700,p:40,c:65,f:28},
+{name:'Chipotle Chicken Bowl',brand:'Chipotle',cal:650,p:40,c:70,f:20},{name:'KFC Chicken Breast',brand:'KFC',cal:390,p:39,c:11,f:21}
+];
+const restaurants=[
+{name:"McDonald's",emoji:'🍔'},{name:'Taco Bell',emoji:'🌮'},{name:'Chick-fil-A',emoji:'🐔'},{name:"Wendy's",emoji:'🍔'},
+{name:'Burger King',emoji:'🍔'},{name:'Subway',emoji:'🥪'},{name:'Starbucks',emoji:'☕'},{name:'Chipotle',emoji:'🌯'},
+{name:'KFC',emoji:'🍗'},{name:"Domino's",emoji:'🍕'},{name:'Panera Bread',emoji:'🥗'},{name:'Olive Garden',emoji:'🍝'},
+{name:'Texas Roadhouse',emoji:'🥩'},{name:'Pizza Hut',emoji:'🍕'},{name:"Five Guys",emoji:'🍔'},{name:"Cracker Barrel",emoji:'🍳'},
+{name:"Denny's",emoji:'🥞'},{name:'IHOP',emoji:'🥞'},{name:'Panda Express',emoji:'🥡'},{name:'Buffalo Wild Wings',emoji:'🍗'}
+];
+let state=JSON.parse(localStorage.getItem('caltrack')||'null')||{target:2200,pro:150,carb:220,fat:70,log:[],weights:[]};
+
+function save(){localStorage.setItem('caltrack',JSON.stringify(state));update()}
+function toast(t){const x=document.getElementById('toast');x.textContent=t;x.style.display='block';clearTimeout(window._toast);window._toast=setTimeout(()=>x.style.display='none',1600)}
+function show(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));const s=document.getElementById(id);if(!s)return;s.classList.add('active');document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.s===id));document.getElementById('pageTitle').textContent=id==='today'?'Today':id==='ai'?'AI Assistant':id[0].toUpperCase()+id.slice(1);if(id==='food')renderFoods();if(id==='add')renderRestaurants();if(id==='ai')renderAI()}
+function addFood(food,meal){if(!food)return;state.log.push({name:food.name||'Food',brand:food.brand||'Food',cal:Number(food.cal)||0,p:Number(food.p)||0,c:Number(food.c)||0,f:Number(food.f)||0,meal:meal||document.getElementById('mealType').value||'morning'});save();toast((food.name||'Food')+' added');show('today')}
+function update(){
+ const t=state.log.reduce((a,x)=>({cal:a.cal+(Number(x.cal)||0),p:a.p+(Number(x.p)||0),c:a.c+(Number(x.c)||0),f:a.f+(Number(x.f)||0)}),{cal:0,p:0,c:0,f:0});
+ document.getElementById('calories').textContent=Math.round(t.cal);document.getElementById('target').textContent=state.target;document.getElementById('goalPill').textContent=state.target+' kcal';
+ document.getElementById('pval').textContent=Math.round(t.p)+'g';document.getElementById('cval').textContent=Math.round(t.c)+'g';document.getElementById('fval').textContent=Math.round(t.f)+'g';
+ document.querySelector('.ring').style.setProperty('--pct',Math.min(100,(t.cal/Math.max(1,state.target))*100)+'%');
+ const meals={morning:'morningList',lunch:'lunchList',dinner:'dinnerList',snack:'snackList'};
+ let any=false;
+ Object.entries(meals).forEach(([m,id])=>{const arr=state.log.map((x,i)=>({...x,i})).filter(x=>(x.meal||'morning')===m);const box=document.getElementById(id);box.innerHTML=arr.map(x=>'<div class="meal row"><div><b>'+esc(x.name)+'</b><div class="muted">'+esc(x.brand||'Food')+' · '+Math.round(x.p)+'g protein</div></div><div style="text-align:right"><b>'+Math.round(x.cal)+' kcal</b><br><button class="btn secondary mini" onclick="deleteFood('+x.i+')">Delete</button></div></div>').join('');if(arr.length)any=true;});
+ document.getElementById('mealEmpty').style.display=any?'none':'block';document.getElementById('morningNeed').textContent=Math.max(0,Math.round(state.target-t.cal))+' kcal';document.getElementById('lunchNeed').textContent=Math.max(0,Math.round(state.target-t.cal))+' kcal';document.getElementById('dinnerNeed').textContent=Math.max(0,Math.round(state.target-t.cal))+' kcal';document.getElementById('snackNeed').textContent=Math.max(0,Math.round(state.target-t.cal))+' kcal';
+}
+function deleteFood(i){state.log.splice(i,1);save();toast('Food deleted')}
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function renderFoods(){const q=(document.getElementById('search').value||'').toLowerCase().trim();const list=foods.filter(x=>(x.name+' '+x.brand).toLowerCase().includes(q));document.getElementById('foods').innerHTML=list.map((x,i)=>'<div class="food"><div class="foodIcon">🍽️</div><div class="foodMain"><b>'+esc(x.name)+'</b><span>'+esc(x.brand)+' · '+x.cal+' kcal · P '+x.p+'g · C '+x.c+'g · F '+x.f+'g</span></div><button class="btn mini" onclick="addFood(foods['+foods.indexOf(x)+'],document.getElementById(\'mealType\').value)">＋</button></div>').join('')||'<div class="empty">No foods found.</div>'}
+function renderRestaurants(){const q=(document.getElementById('restaurantSearch').value||'').toLowerCase().trim();const list=restaurants.filter(r=>r.name.toLowerCase().includes(q));document.getElementById('restaurantResults').innerHTML=list.map(r=>'<div class="food" onclick="openRestaurant('+JSON.stringify(r.name)+')"><div class="foodIcon">'+r.emoji+'</div><div class="foodMain"><b>'+esc(r.name)+'</b><span>Browse menu</span></div><b>›</b></div>').join('')||'<div class="empty">No restaurants found.</div>'}
+function openRestaurant(name){const items=foods.filter(x=>x.brand===name);const box=document.getElementById('restaurantResults');box.innerHTML='<button class="backBtn" onclick="renderRestaurants()">← Back to restaurants</button><div class="sectionTitle" style="margin:8px 0">'+esc(name)+'</div>'+((items.length?items.map(x=>'<div class="food"><div class="foodIcon">🍽️</div><div class="foodMain"><b>'+esc(x.name)+'</b><span>'+x.cal+' kcal · P '+x.p+'g · C '+x.c+'g · F '+x.f+'g</span></div><button class="btn mini" onclick="addFoodByName('+JSON.stringify(x.name)+','+JSON.stringify(name)+')">＋</button></div>').join(''):'<div class="empty">Menu items coming soon for this restaurant.</div>'))}
+function addFoodByName(name,brand){const x=foods.find(f=>f.name===name&&f.brand===brand);if(x)addFood(x,document.getElementById('mealType').value)}
+function quickAdd(){const c=document.getElementById('quickAddCard');c.style.display=c.style.display==='none'?'block':'none';if(c.style.display==='block')document.getElementById('qaCal').focus()}
+function saveQuickAdd(){const cal=Number(document.getElementById('qaCal').value);if(!Number.isFinite(cal)||cal<0){toast('Enter calories first');return}addFood({name:'Quick Add',brand:'Manual entry',cal,p:Math.max(0,Number(document.getElementById('qaPro').value)||0),c:Math.max(0,Number(document.getElementById('qaCarb').value)||0),f:Math.max(0,Number(document.getElementById('qaFat').value)||0)},document.getElementById('mealType').value);['qaCal','qaPro','qaCarb','qaFat'].forEach(id=>document.getElementById(id).value='')}
+function saveSettings(){state.target=Number(document.getElementById('sCal').value)||2200;state.pro=Number(document.getElementById('sPro').value)||150;state.carb=Number(document.getElementById('sCarb').value)||220;state.fat=Number(document.getElementById('sFat').value)||70;save();toast('Goals saved')}
+function toggleDark(){document.body.classList.toggle('dark');localStorage.setItem('dark',document.body.classList.contains('dark')?'true':'false')}
+function resetData(){if(confirm("Clear today's food log?")){state.log=[];save();toast('Today cleared')}}
+function saveWeight(){const v=Number(document.getElementById('weightInput').value);if(!Number.isFinite(v)||v<=0){toast('Enter a weight');return}state.weights=Array.isArray(state.weights)?state.weights:[];state.weights.push({date:new Date().toLocaleDateString(),value:v,unit:document.getElementById('weightUnit').value});state.weights=state.weights.slice(-7);save();renderWeights();toast('Weight saved')}
+function renderWeights(){const a=Array.isArray(state.weights)?state.weights:[];document.getElementById('weightList').innerHTML=a.length?a.slice().reverse().map(x=>'<div class="meal row"><b>'+esc(x.date)+'</b><span>'+x.value+' '+esc(x.unit)+'</span></div>').join(''):'<div class="empty">No weights saved yet.</div>'}
+
+function aiTotals(){return state.log.reduce((a,x)=>({cal:a.cal+(+x.cal||0),p:a.p+(+x.p||0),c:a.c+(+x.c||0),f:a.f+(+x.f||0)}),{cal:0,p:0,c:0,f:0})}
+function aiSay(t){const b=document.getElementById('aiChat');const d=document.createElement('div');d.className='aiBubble';d.innerHTML=t;b.appendChild(d);b.scrollTop=b.scrollHeight}
+async function aiAsk(q){
+  q=String(q||'').trim();
+  if(!q)return;
+  const b=document.getElementById('aiChat');
+  if(!b)return;
+  const u=document.createElement('div');
+  u.className='aiBubble userBubble';
+  u.textContent=q;
+  b.appendChild(u);
+  b.scrollTop=b.scrollHeight;
+  try{
+    const answer=await window.getAIAnswer(q);
+    aiSay(answer||'I could not answer that.');
+  }catch(e){
+    console.error(e);
+    aiSay('Sorry, I had a problem answering that. Please try again.');
+  }
+}
+function renderAI(){const b=document.getElementById('aiChat');if(!b)return;if(!b.children.length)aiSay('Hey! I’m your CalTrack Coach. Ask me about your calories, protein, meals, or what to eat next.')}
+document.addEventListener('DOMContentLoaded',()=>{
+ document.getElementById('search').addEventListener('input',renderFoods);document.getElementById('restaurantSearch').addEventListener('input',renderRestaurants);
+ document.querySelectorAll('.aiPrompt').forEach(x=>x.addEventListener('click',()=>aiAsk(x.dataset.q)));
+ document.getElementById('aiSend').addEventListener('click',()=>{const i=document.getElementById('aiInput');aiAsk(i.value);i.value=''});
+ document.getElementById('aiInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('aiSend').click()});
+ document.getElementById('aiSpeak').addEventListener('click',()=>{const a=document.querySelectorAll('#aiChat .aiBubble');if(a.length&&'speechSynthesis'in window)speechSynthesis.speak(new SpeechSynthesisUtterance(a[a.length-1].textContent))});
+ document.getElementById('sCal').value=state.target;document.getElementById('sPro').value=state.pro;document.getElementById('sCarb').value=state.carb;document.getElementById('sFat').value=state.fat;
+ if(localStorage.getItem('dark')==='true')document.body.classList.add('dark');renderRestaurants();renderWeights();update();renderAI();
+});
+
+
+/* CalTrack AI - Basic Knowledge + existing CalTrack integration */
+const basicKnowledge = [
+  [/^(hi|hello|hey)\b/i, "Hey! I’m CalTrack AI. Ask me about your food log, nutrition, fitness, math, science, or everyday questions."],
+  [/capital of (the )?(united states|usa|america)/i, "The capital of the United States is Washington, D.C."],
+  [/capital of kentucky/i, "The capital of Kentucky is Frankfort."],
+  [/largest ocean/i, "The Pacific Ocean is the Pacific Ocean."],
+  [/smallest ocean/i, "The Arctic Ocean is the smallest of the five major oceans."],
+  [/how many continents/i, "There are 7 continents."],
+  [/how many oceans/i, "There are 5 commonly recognized oceans."],
+  [/planet closest to the sun/i, "Mercury is the planet closest to the Sun."],
+  [/largest planet/i, "Jupiter is the largest planet in our solar system."],
+  [/red planet/i, "Mars is known as the Red Planet."],
+  [/how many planets/i, "There are 8 recognized planets in our solar system."],
+  [/speed of light/i, "Light travels through a vacuum at about 299,792 kilometers per second, or about 186,282 miles per second."],
+  [/boiling point of water/i, "Water boils at 100°C (212°F) at standard atmospheric pressure."],
+  [/freezing point of water/i, "Water freezes at 0°C (32°F) at standard atmospheric pressure."],
+  [/photosynthesis/i, "Photosynthesis is the process plants use to turn light energy, water, and carbon dioxide into chemical energy, producing oxygen as a byproduct."],
+  [/what is gravity|gravity/i, "Gravity is the force that attracts objects with mass toward one another. Earth's gravity keeps us on the ground and helps keep the Moon in orbit."],
+  [/what is dna|dna\b/i, "DNA stores genetic instructions used by living organisms and many viruses."],
+  [/what is ai|artificial intelligence/i, "Artificial intelligence is technology that enables computers to perform tasks that normally require human intelligence, such as understanding language and recognizing patterns."],
+  [/machine learning/i, "Machine learning is a type of AI in which systems learn patterns from data to make predictions or decisions."],
+  [/what is protein|protein\b/i, "Protein is a nutrient made of amino acids. It helps build and repair tissues and supports many functions in the body."],
+  [/what are carbohydrates|what is a carbohydrate|carbohydrates/i, "Carbohydrates are nutrients that provide energy. They are found in foods such as rice, bread, potatoes, fruit, beans, and oats."],
+  [/what is fat|dietary fat/i, "Dietary fat provides energy and helps the body absorb fat-soluble vitamins."],
+  [/what is a calorie|calories\b/i, "A calorie is a unit of energy. In nutrition, food calories describe how much energy a food provides."],
+  [/what is fiber|dietary fiber/i, "Dietary fiber is a type of carbohydrate that the body does not fully digest. It supports digestive health and can help with fullness."],
+  [/seconds in a minute/i, "There are 60 seconds in a minute."],
+  [/minutes in an hour/i, "There are 60 minutes in an hour."],
+  [/hours in a day/i, "There are 24 hours in a day."],
+  [/days in a week/i, "There are 7 days in a week."],
+  [/inches in a foot/i, "There are 12 inches in a foot."],
+  [/feet in a mile/i, "There are 5,280 feet in a mile."],
+  [/ounces in a pound/i, "There are 16 ounces in a pound."],
+  [/what is creatine/i, "Creatine is a naturally occurring compound stored mainly in muscle. Creatine supplements can improve strength and high-intensity exercise performance for many people."],
+  [/what is caffeine/i, "Caffeine is a stimulant found in coffee, tea, energy drinks, and other products. It can increase alertness and temporarily reduce fatigue."]
+];
+
+function caltrackBasicKnowledge(q){
+  for(const pair of basicKnowledge){
+    if(pair[0].test(q)) return pair[1];
+  }
+  return null;
+}
+
+function caltrackMath(q){
+  let expr=q.toLowerCase()
+    .replace(/what is|calculate|calculator|solve|compute|equals|=/g,"")
+    .trim();
+  if(!expr || !/^[0-9+\-*/().%\s]+$/.test(expr)) return null;
+  try{
+    const result=Function('"use strict";return ('+expr+')')();
+    if(Number.isFinite(result)) return "The answer is "+result+".";
+  }catch(e){}
+  return null;
+}
+
+function caltrackTodaySummary(){
+  const log=Array.isArray(state.log)?state.log:[];
+  const total=log.reduce((a,x)=>({
+    cal:a.cal+(Number(x.cal)||0),
+    p:a.p+(Number(x.p)||0),
+    c:a.c+(Number(x.c)||0),
+    f:a.f+(Number(x.f)||0)
+  }),{cal:0,p:0,c:0,f:0});
+  return `Today you have logged ${Math.round(total.cal)} calories, ${Math.round(total.p)}g protein, ${Math.round(total.c)}g carbs, and ${Math.round(total.f)}g fat. Your calorie goal is ${state.target||0} kcal.`;
+}
+
+/* Replace the existing AI answer function with one reliable handler. */
+window.getAIAnswer = async function(q){
+  q=String(q||"").trim();
+  const l=q.toLowerCase();
+
+  if(/what time|current time|time is it|what's the time|whats the time/.test(l))
+    return "It's "+new Intl.DateTimeFormat(undefined,{hour:"numeric",minute:"2-digit",second:"2-digit"}).format(new Date())+".";
+
+  if(/what date|today's date|todays date|what day is it|what is today/.test(l))
+    return "Today is "+new Intl.DateTimeFormat(undefined,{weekday:"long",month:"long",day:"numeric",year:"numeric"}).format(new Date())+".";
+
+  if(/today|logged|eaten|ate|food log/.test(l) && /calor|protein|carb|fat|food|eat|log/.test(l))
+    return caltrackTodaySummary();
+
+  if(/calorie goal|calories goal/.test(l))
+    return `Your current calorie goal is ${state.target||0} kcal per day.`;
+
+  if(/protein goal|how much protein.*goal/.test(l))
+    return `Your current protein goal is ${state.pro||0}g per day.`;
+
+  const math=caltrackMath(q);
+  if(math) return math;
+
+  const known=caltrackBasicKnowledge(q);
+  if(known) return known;
+
+  if(/how.*lose weight|weight loss|calorie deficit/.test(l))
+    return "Weight loss generally requires a sustained calorie deficit. A reasonable approach is to eat enough protein, strength train, stay active, and use a gradual calorie reduction rather than a crash diet.";
+
+  /* Search the built-in CalTrack food database by name or brand. */
+  if(/calor|nutrition|protein|carb|fat/.test(l)){
+    const clean=l.replace(/^(how many|what is|what are|tell me about)\s*/,"")
+      .replace(/calories in|calories of|nutrition for|nutrition in/g,"")
+      .trim();
+    if(Array.isArray(foods)){
+      const item=foods.find(x=>(String(x.name)+" "+String(x.brand||"")).toLowerCase().includes(clean));
+      if(item) return `${item.name}${item.brand?" ("+item.brand+")":""}: ${item.cal||0} calories, ${item.p||0}g protein, ${item.c||0}g carbs, ${item.f||0}g fat.`;
+    }
+  }
+
+  return "I can answer basic general-knowledge questions, math, time/date questions, nutrition questions, and questions about your CalTrack log. Try asking me something like “What is gravity?” or “How many calories did I eat today?”";
+};
+
+
+
+window.lookupBarcodeManual = function(){
+  const input = document.getElementById('manualBarcode');
+  const code = String(input ? input.value : '').replace(/\D/g,'');
+  if(!code){
+    const s=document.getElementById('barcodeStatus');
+    if(s) s.textContent='Enter a barcode number first.';
+    return;
+  }
+  lookupBarcode(code);
+};
+
+/* CalTrack barcode scanner - ZXing camera scanner + Open Food Facts */
+(function(){
+  let codeReader = null;
+  let controls = null;
+
+  window.startBarcodeScanner = async function(){
+    const box = document.getElementById('barcodeScanner');
+    const video = document.getElementById('barcodeVideo');
+    const status = document.getElementById('barcodeStatus');
+    const btn = document.getElementById('startBarcodeBtn');
+
+    if(!box || !video) return;
+
+    if(!window.ZXingBrowser){
+      if(status) status.textContent = 'Barcode scanner is still loading. Please try again.';
+      return;
+    }
+
+    try{
+      if(controls) controls.stop();
+
+      box.classList.remove('hidden');
+      if(btn) btn.disabled = true;
+      if(status) status.textContent = 'Starting camera…';
+
+      codeReader = new ZXingBrowser.BrowserMultiFormatReader();
+
+      const devices = await ZXingBrowser.BrowserCodeReader.listVideoInputDevices();
+      let deviceId = null;
+
+      // Prefer the rear/environment camera on phones.
+      if(devices && devices.length){
+        const rear = devices.find(d => /back|rear|environment/i.test(d.label || ''));
+        deviceId = (rear || devices[0]).deviceId;
+      }
+
+      controls = await codeReader.decodeFromVideoDevice(
+        deviceId,
+        video,
+        async (result, error) => {
+          if(result){
+            const code = result.getText();
+            if(status) status.textContent = 'Barcode found: ' + code;
+            stopBarcodeScanner();
+            await lookupBarcode(code);
+          }
+        }
+      );
+
+      if(status) status.textContent = 'Point the camera at the barcode.';
+    }catch(e){
+      console.error(e);
+      if(status){
+        status.textContent = 'Camera could not start. Allow camera permission, then try again.';
+      }
+      stopBarcodeScanner();
+    }
+  };
+
+  window.stopBarcodeScanner = function(){
+    try{
+      if(controls) controls.stop();
+      controls = null;
+      if(codeReader && codeReader.reset) codeReader.reset();
+    }catch(e){}
+    const video = document.getElementById('barcodeVideo');
+    if(video){
+      try{ video.pause(); }catch(e){}
+      if(video.srcObject){
+        try{ video.srcObject.getTracks().forEach(t=>t.stop()); }catch(e){}
+        video.srcObject = null;
+      }
+    }
+    const box = document.getElementById('barcodeScanner');
+    const btn = document.getElementById('startBarcodeBtn');
+    if(box) box.classList.add('hidden');
+    if(btn) btn.disabled = false;
+  };
+
+  async function lookupBarcode(code){
+    const status = document.getElementById('barcodeStatus');
+    if(status) status.textContent = 'Looking up nutrition…';
+
+    try{
+      const r = await fetch(
+        'https://world.openfoodfacts.org/api/v2/product/' +
+        encodeURIComponent(code) + '.json'
+      );
+      if(!r.ok) throw new Error('Lookup failed');
+      const data = await r.json();
+
+      if(!data || data.status !== 1 || !data.product){
+        if(status) status.textContent =
+          'Product not found. Try scanning again or use Quick Add.';
+        return;
+      }
+
+      const p = data.product;
+      const n = p.nutriments || {};
+      const name = p.product_name || p.product_name_en || 'Scanned Food';
+      const brand = p.brands ? ' • ' + p.brands : '';
+      const serving = p.serving_size || '';
+
+      const num = v => {
+        const x = Number(v);
+        return Number.isFinite(x) ? x : 0;
+      };
+
+      // Prefer per-serving values. Fall back to per-100g when the database
+      // doesn't have serving values.
+      const kcal = num(n['energy-kcal_serving'] ?? n['energy-kcal_100g']);
+      const protein = num(n['proteins_serving'] ?? n['proteins_100g']);
+      const carbs = num(n['carbohydrates_serving'] ?? n['carbohydrates_100g']);
+      const fat = num(n['fat_serving'] ?? n['fat_100g']);
+
+      showBarcodeFoodEditor({
+        name: name + brand,
+        serving,
+        calories: Math.round(kcal),
+        protein,
+        carbs,
+        fat
+      });
+    }catch(e){
+      console.error(e);
+      if(status) status.textContent =
+        'Could not look up this barcode. Check your internet connection.';
+    }
+  }
+
+  function showBarcodeFoodEditor(food){
+    let modal = document.getElementById('barcodeFoodModal');
+
+    if(!modal){
+      modal = document.createElement('div');
+      modal.id = 'barcodeFoodModal';
+      modal.className = 'modalOverlay';
+      modal.innerHTML = `
+        <div class="modalCard">
+          <div class="sectionTitle">🥫 Scanned Food</div>
+          <div id="barcodeFoodName" class="foodName"></div>
+          <div id="barcodeFoodServing" class="muted"></div>
+          <p class="muted">Check the nutrition. You can change anything before adding it.</p>
+
+          <div class="grid2">
+            <label>Calories
+              <input id="bcCalories" type="number" min="0">
+            </label>
+            <label>Protein (g)
+              <input id="bcProtein" type="number" min="0" step="0.1">
+            </label>
+            <label>Carbs (g)
+              <input id="bcCarbs" type="number" min="0" step="0.1">
+            </label>
+            <label>Fat (g)
+              <input id="bcFat" type="number" min="0" step="0.1">
+            </label>
+          </div>
+
+          <label>Meal
+            <select id="bcMeal">
+              <option>Morning</option>
+              <option>Lunch</option>
+              <option>Dinner</option>
+              <option>Snacks</option>
+            </select>
+          </label>
+
+          <div class="modalActions">
+            <button type="button" class="btn secondary" id="bcCancel">Cancel</button>
+            <button type="button" class="btn primary" id="bcAdd">Add to Today</button>
+          </div>
+        </div>`;
+
+      document.body.appendChild(modal);
+
+      document.getElementById('bcCancel').onclick = () =>
+        modal.classList.add('hidden');
+
+      document.getElementById('bcAdd').onclick = () => {
+        const item = {
+          name: document.getElementById('barcodeFoodName').dataset.baseName ||
+                document.getElementById('barcodeFoodName').textContent,
+          calories: Number(document.getElementById('bcCalories').value) || 0,
+          protein: Number(document.getElementById('bcProtein').value) || 0,
+          carbs: Number(document.getElementById('bcCarbs').value) || 0,
+          fat: Number(document.getElementById('bcFat').value) || 0,
+          meal: document.getElementById('bcMeal').value
+        };
+        addScannedFood(item);
+        modal.classList.add('hidden');
+      };
+    }
+
+    document.getElementById('barcodeFoodName').textContent = food.name;
+    document.getElementById('barcodeFoodName').dataset.baseName = food.name;
+    document.getElementById('barcodeFoodServing').textContent =
+      food.serving ? 'Serving: ' + food.serving :
+      'Nutrition shown per serving when available.';
+    document.getElementById('bcCalories').value = food.calories;
+    document.getElementById('bcProtein').value = food.protein;
+    document.getElementById('bcCarbs').value = food.carbs;
+    document.getElementById('bcFat').value = food.fat;
+    modal.classList.remove('hidden');
+  }
+
+  function addScannedFood(item){
+    try{
+      const raw = localStorage.getItem('caltrack');
+      const state = raw ? JSON.parse(raw) : {};
+
+      // The existing CalTrack build uses state.today.items for today's log.
+      state.today = state.today || {};
+      if(!Array.isArray(state.today.items)) state.today.items = [];
+
+      state.today.items.push({
+        name:item.name,
+        calories:item.calories,
+        protein:item.protein,
+        carbs:item.carbs,
+        fat:item.fat,
+        meal:item.meal
+      });
+
+      // Also save the scanned item to the food database when that array exists.
+      if(Array.isArray(state.foods)){
+        state.foods.push({
+          name:item.name,
+          calories:item.calories,
+          protein:item.protein,
+          carbs:item.carbs,
+          fat:item.fat,
+          meal:item.meal,
+          source:'barcode'
+        });
+      }
+
+      localStorage.setItem('caltrack', JSON.stringify(state));
+
+      if(typeof window.renderToday === 'function') window.renderToday();
+      if(typeof window.renderFood === 'function') window.renderFood();
+      if(typeof window.renderAdd === 'function') window.renderAdd();
+
+      if(typeof window.goTo === 'function') window.goTo('today');
+      else if(typeof window.showScreen === 'function') window.showScreen('today');
+    }catch(e){
+      console.error(e);
+      alert('The scanned food could not be added.');
+    }
+  }
+})();
+</script>
+</body></html>
